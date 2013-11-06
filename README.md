@@ -4,3 +4,7 @@ chie chie
 chie chie chie chie
 
 puru puru
+
+I wanna get into game design
+
+pls
