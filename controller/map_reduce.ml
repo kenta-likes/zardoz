@@ -2,13 +2,17 @@ open Util
 open Worker_manager
 
 (* TODO implement these *)
-let map kv_pairs map_filename : (string * string) list = 
+let map (kv_pairs: (string * string) list) (map_filename:string) : (string * string) list = 
+	(*ToDo
+	 * 1. Initialize a mapper worker by calling Worker_manager.initialize_mappers
+	 * 2. 
+	 * *)
   failwith "Go back whence you came! Trouble the soul of my Mother no more!"
 
-let combine kv_pairs : (string * string list) list = 
+let combine (kv_pairs: (string * string) list) : (string * string list) list = 
   failwith "You have been doomed ever since you lost the ability to love."
 
-let reduce kvs_pairs reduce_filename : (string * string list) list =
+let reduce (kvs_pairs : (string * string list) list) (reduce_filename : string) : (string * string list) list =
   failwith "The only thing necessary for evil to triumph is for good men to do nothing"
 
 let map_reduce app_name mapper_name reducer_name kv_pairs =
