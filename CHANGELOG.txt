@@ -1,3 +1,0 @@
-
-version 1: released 11/1
- - initial revision
