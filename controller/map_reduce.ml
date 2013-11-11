@@ -1,16 +1,16 @@
 open Util
 open Worker_manager
 
-<<<<<<< HEAD
+
 type map_or_reduce = Map | Reduce
 
 let mrhelper (kv_list : ('a * 'b) list) (mor :map_or_reduce)  = 
   (*1. create thread pool *)
   let tpool = Thread_pool.create 20 in (* how many threads? *)
   (*2. create a hashtbl that stores the result. Needs to be thread-safe *)
-  let results = Hashtbl.create (2 * (List.length kv_pairs)) in 
+  let resultsTable = Hashtbl.create (2 * (List.length kv_pairs)) in 
   (*3. create a hashtbl that stores unfinished kv pairs. Needs to be thread-safe *)
-  let unfinished = Hashtbl.create (List.length kv_pairs) in
+  let unfinishedList = ref [] in
   (*4. Loop through the kv_pairs list *)
   let assigntask =
     let rec helper =
@@ -71,9 +71,6 @@ let reduce (kvs_pairs : (string * string list) list) (reduce_filename : string) 
 
 
 
-
-
-=======
 (* TODO implement these *)
 let map kv_pairs map_filename : (string * string) list = 
   failwith "Go back whence you came! Trouble the soul of my Mother no more!"
