@@ -1,11 +1,46 @@
 open Util
 open Worker_manager
 
+type map_or_reduce = Map | Reduce
+
+let mrhelper (kv_list : ('a * 'b) list) (mor :map_or_reduce)  = 
+  (*1. create thread pool *)
+  let tpool = Thread_pool.create 20 in (* how many threads? *)
+  (*2. create a hashtbl that stores the result. Needs to be thread-safe *)
+  let results = Hashtbl.create (2 * (List.length kv_pairs)) in 
+  (*3. create a hashtbl that stores unfinished kv pairs. Needs to be thread-safe *)
+  let unfinished = Hashtbl.create (List.length kv_pairs) in
+  (*4. Loop through the kv_pairs list *)
+  let assigntask =
+    let rec helper =
+
+    in
+    helper 
+  in
+  let definejob k v () : unit = 
+    (* pop a worker *)
+    
+    (* do work *)
+
+    (* push a worker*)
+
+    (* update hashtbl *)
+
+
+
 (* TODO implement these *)
 let map (kv_pairs: (string * string) list) (map_filename:string) : (string * string) list = 
+  mrhelper Map  
+
+
+
+
+
+
 	(* ? Is the kv_pairs the complete list from the inputfile? or partial ?
+
 	 * 1. Initialize a mapper worker by calling Worker_manager.initialize_mappers *)
-    let wm = Worker_manager.initialize_mappers map_filename in
+  (*  let wm = Worker_manager.initialize_mappers map_filename in
 	(* 2. Sends individual unmapped (id, body) pairs tp available mappers *)
 	let rec helper pairs acc = 
         match pairs with
@@ -21,15 +56,22 @@ let map (kv_pairs: (string * string) list) (map_filename:string) : (string * str
             	| None   -> (* dead kevin?? *)   helper pairs acc
             end
         in
-        helper kv_pairs []
-	(* *)
-  failwith "Go back whence you came! Trouble the soul of my Mother no more!"
+        helper kv_pairs []*)
+	(* 
+  failwith "Go back whence you came! Trouble the soul of my Mother no more!"*)
 
 let combine (kv_pairs: (string * string) list) : (string * string list) list = 
+    (*  *)
+
   failwith "You have been doomed ever since you lost the ability to love."
 
 let reduce (kvs_pairs : (string * string list) list) (reduce_filename : string) : (string * string list) list =
-  failwith "The only thing necessary for evil to triumph is for good men to do nothing"
+  mrhelper Reduce
+
+
+
+
+
 
 let map_reduce app_name mapper_name reducer_name kv_pairs =
   let map_filename    = Printf.sprintf "apps/%s/%s.ml" app_name mapper_name  in
