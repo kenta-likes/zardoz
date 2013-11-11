@@ -1,6 +1,7 @@
 open Util
 open Worker_manager
 
+<<<<<<< HEAD
 type map_or_reduce = Map | Reduce
 
 let mrhelper (kv_list : ('a * 'b) list) (mor :map_or_reduce)  = 
@@ -72,6 +73,17 @@ let reduce (kvs_pairs : (string * string list) list) (reduce_filename : string) 
 
 
 
+=======
+(* TODO implement these *)
+let map kv_pairs map_filename : (string * string) list = 
+  failwith "Go back whence you came! Trouble the soul of my Mother no more!"
+
+let combine kv_pairs : (string * string list) list = 
+  failwith "You have been doomed ever since you lost the ability to love."
+
+let reduce kvs_pairs reduce_filename : (string * string list) list =
+  failwith "The only thing necessary for evil to triumph is for good men to do nothing"
+>>>>>>> c13b72314b2a8646f81a76227162e257198b838e
 
 let map_reduce app_name mapper_name reducer_name kv_pairs =
   let map_filename    = Printf.sprintf "apps/%s/%s.ml" app_name mapper_name  in
