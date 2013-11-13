@@ -5,8 +5,11 @@ open Worker_manager
 module T = Thread_pool
 module H = Hashtbl
 module WM = Worker_manager 
+module M = Mutex
 type worker_type = Map | Reduce 
 type worker   =  MapperKevin of WM.mapper | ReducerKevin of WM.reducer
+let mutex_map = M.create () 
+let mutex_red = M.create ()
 
 
 (* because default sleep function won't let me sleep for less than a second *)
@@ -22,8 +25,43 @@ let rec makehash (acc: ('a, 'b) H.t) kvlst =
 (* send kevin to work. Kevin can be mapper or reducer *)
 let sendtowork kevin k v : 'a list option =
   match kevin with
-    | Map    ->  WM.map kevin k v  
-    | Reduce ->  WM.reduce kevin k v
+    | MapperKevin  m ->  WM.map m k v  
+    | ReducerKevin r ->  WM.reduce r k v
+
+
+(* define job for mapper *)
+let mapperjob wm1 k v results () : unit =
+  (* pop a worker *)
+  let kevin  = WM.pop_worker wm in
+  (* do work *)
+  let result :'a list option = WM.map kevin k v in 
+  match result with
+    | Some res -> (* Success *) M.lock mutex_map ;
+      if (H.mem todo k) then begin 
+        (* update todo and results and push a worker *) 
+        (H.remove todo k); (results := ((k, res) :: !results));
+        M.unlock mutex_map; WM.push_worker wm1 kevin
+      end
+      else (* someone else has alreay done this job. *)
+        M.unlock mutex_map
+    | None     -> (* Failure, accum. # failure *) ()
+
+
+
+let reducerjob wm2 k vlist results () : unit =
+  (* pop a worker *)
+  let kevin  = WM.pop_worker wm in
+  let result :'a list option = WM.reduce kevin k vlist in
+  match result  with
+  | Some res -> (*sucess*) M.lock mutex_red;
+    if (H.mem todo k) then begin 
+        (* update todo and results, and push a worker *) 
+        (H.remove todo k); (results := ((k, res) :: !results)); 
+        M.unlock mutex_red; WM.push_worker wm2 kevin
+      end
+    else M.unlock mutex_red 
+  | None -> ()
+    
 
 
 (* todo  : ('a, 'b) H.t = ('a, 'b) Hashtbl.t
@@ -34,35 +72,22 @@ let rec mrhelper todo wtype wm =
   let tpool = T.create 30 in
   (*2. create a list that stores the result. access should be thread-safe *)
   let results = ref [] in 
-  let definejob wm k v () : unit = 
-    (* pop a worker *)
-    let kevin  = WM.pop_worker wm in
-    (* do work *)
-    let result :'a list option = 
-      sendtowork wtype kevin k v
-      in 
-    match result with
-      | Some res -> (* Success *)
-        (**** MUTEX LOCK ****)
-        if (H.mem todo k) then begin 
-          (* update todo and results *) 
-          (H.remove todo k); 
-          (results := ((k, res) :: !results));
-          (**** MUTEX UNLOCK ****)
-          (* push a worker*)
-          WM.push_worker wm kevin
-        end
-        else (* someone else has alreay done this job. *)
-        (**** MUTEX UNLOCK ****) ()
-      | None     -> (* Failure *) ()
-  in
-  T.add_work (definejob k v) tpool;
-  (* Sleep for 0.1 seconds *)
-  zzz 0.1;
-  (* Check for undone job *)
-  if (H.length todo) = 0 && (List.length !results) then !results
+  (*3. Assign job *)
+  match wm with
+  | MapWM wm1 -> 
+    let f k v =  T.add_work (mapperjob wm1 k v) tpool in H.iter f todo 
+  | RedWM wm2 -> 
+    let f k v =  T.add_work (reducerjob wm2 k v) tpool in H.iter f todo    
+  (*4. Sleep for 0.1 seconds *) zzz 0.1;
+  (*5. Check for undone jobs *)
+  if (H.length todo) = 0 then begin 
+    (*cleanup workers, and then threadpool.destroy*) 
+    match wm with
+    | MapWM wm1 -> begin WM.clean_up_workers wm1; T.destroy tp; !results end
+    | RedWM wm2 -> begin WM.clean_up_workers wm2; T.destroy tp; !results end
+  end
   else (* Not everything is done *)
-    mrhelper todo mor wm
+    mrhelper todo wtype wm
 
 
 
@@ -77,27 +102,6 @@ let map (kv_pairs: (string * string) list) (map_filename:string) : (string * str
 
 
 
-
-
-
-	 (* 1. Initialize a mapper worker by calling Worker_manager.initialize_mappers *)
-  (*  let wm = Worker_manager.initialize_mappers map_filename in
-	(* 2. Sends individual unmapped (id, body) pairs tp available mappers *)
-	let rec helper pairs acc = 
-        match pairs with
-        (* Base case. Return the result*)
-        | [] -> acc@l
-        (* more tasks to do *)
-        | (k, v)::tl -> 
-            let kevin = Worker_manager.pop_worker wm in (* Kevin the mapper! *)
-            begin
-            	match Worker_manager.map kevin k v with (* Kevin goes to work*)
-            	| Some l -> (* success. push Kevin and move onto next task *) 
-            	    Worker_manager.push_worker wm kevin ; helper tl (acc@l)
-            	| None   -> (* dead kevin?? *)   helper pairs acc
-            end
-        in
-        helper kv_pairs []*)
 
 
 (* Combine values with the same keys. This function won't preserve order. *)
