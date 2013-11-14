@@ -53,6 +53,6 @@ worker_server.exe: shared/util.cma $(SHARED_SOURCES) $(WS_SOURCES)
     threads.cma util.cma $(SHARED_SOURCES) $(WS_SOURCES)
 
 controller.exe: shared/util.cma $(SHARED_SOURCES) $(CONTROLLER_SOURCES) controller/main.ml
-	ocamlc -thread -o controller.exe -I shared -I controller -I apps/nbody \
+	ocamlc -thread -o controller.exe -I shared -I controller  \
 	-I apps/word_count -I apps/grades -I apps/transaction_track dynlink.cma unix.cma \
     threads.cma str.cma util.cma $(SHARED_SOURCES) $(CONTROLLER_SOURCES) controller/main.ml
