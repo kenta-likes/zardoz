@@ -36,12 +36,12 @@ let mem_spec table k b =
 
 (** Map.empty *****************************************************************)
 
-let empty_spec =
-  failwith "A true sign of intelligence is not knowledge but imagination."
+let empty_spec table = List.length (bindings table) = 0
+  
 
 (* Dependent type for empty: 
  *
- * val empty : TODO
+ * val empty : (table : ('a, 'b) t where empty_spec table) 
  *)
 
 (** Map.find ******************************************************************)
