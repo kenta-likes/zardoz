@@ -46,12 +46,13 @@ let empty_spec table = List.length (bindings table) = 0
 
 (** Map.find ******************************************************************)
 
-let find_spec =
-  failwith "A person who never made a mistake never tried anything new."
+let find_spec table k v = v = List.assoc (bindings table) k 
 
 (* Dependent type for find: 
  *
- * val find : TODO
+ * val find : (table : ('a, 'b) t)
+ *          -> (k : 'a)  
+ *          -> (v : 'b  where find_spec table k v)       
  *)
 
 
@@ -85,23 +86,27 @@ let add_spec table k v result =
 
 (** Map.remove ****************************************************************)
 
-let remove_spec = 
-  failwith "I have no special talent, I am only passionately curious."
+let remove_spec table k result =
+  eqset (bindings_without k table) (bindings result) 
 
 (* Dependent type for remove: 
  *
- * val remove : TODO
+ * val remove :(table : ('a,'b) t)
+ *        -> (k:'a)
+ *        -> (result : ('a,'b) t where remove_spec table k result)
  *)
 
 (** Map.equal *****************************************************************)
 
 
-let equal_spec =
-  failwith ("Insanity: doing the same thing over and over"^
-            " again and expecting different results.")
+let equal_spec table1 table2 b =
+  b = eqset (bindings table1) (bindings table2)
 
 (* Dependent type for equal: 
- * val equal : TODO
+ * val equal : (equal_spec : ('a -> 'a) where )
+ *        -> (table1 : ('a,'b) t)
+ *        -> (table2 : ('a,'b) t)
+ *        -> (b : bool where equal_spec table1 table2 b)
  *)
 
 end
