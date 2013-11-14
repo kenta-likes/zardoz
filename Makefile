@@ -7,6 +7,7 @@
 # con -- rebuild controller
 # clean -- remove all objects and executables
 
+
 UTIL_SOURCES = shared/plane.mli shared/plane.ml shared/util.mli shared/util.ml \
 shared/simulations.mli shared/simulations.ml
 
@@ -19,8 +20,8 @@ worker_server/worker_server.mli worker_server/worker_server.ml
 CONTROLLER_SOURCES = controller/worker_manager.mli controller/worker_manager.ml \
 controller/map_reduce.mli controller/map_reduce.ml
 
-APP_SOURCES = apps/nbody/nbody.ml apps/word_count/word_count.ml \
-apps/grades/grades.ml apps/transaction_track/transaction_track.ml
+APP_SOURCES =  apps/word_count/word_count.ml \
+apps/grades/grades.ml apps/transaction_track/transaction_track.ml #apps/nbody/nbody.ml
 
 LIBS = shared worker_server controller apps/nbody apps/word_count \
 apps/grades apps/transaction_track
