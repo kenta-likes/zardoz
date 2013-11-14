@@ -15,7 +15,7 @@ let rec doTrans curr count accum =
     else (
         let inCount = int_of_string (List.hd curr) in
         let outCount = int_of_string (List.hd (List.tl curr)) in
-        let inTup = inCoins curr inCount accum in
+        let inTup = inCoins (List.tl (List.tl curr)) inCount accum in
         let outTup = outCoins (snd inTup) outCount (fst inTup) in
         doTrans (snd outTup) (count - 1) (fst outTup)
     )
