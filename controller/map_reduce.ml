@@ -8,6 +8,7 @@ module WM = Worker_manager
 module M = Mutex
 let mutex_map = M.create () 
 let mutex_red = M.create ()
+exception ManagerClosed
 
 
 (* because default sleep function won't let me sleep for less than a second *)
@@ -22,7 +23,7 @@ let rec makehash (acc: ('a, 'b) H.t) kvlst =
 
 (* define job for mapper *)
 let mapperjob (wm1: (WM.mapper WM.worker_manager)) k v todo results () : unit =
-  (* pop a worker *)
+  (* pop a worker *) try 
   let kevin  = WM.pop_worker wm1 in
   (* do work *)
   let result :'a list option = WM.map kevin k v in 
@@ -37,9 +38,11 @@ let mapperjob (wm1: (WM.mapper WM.worker_manager)) k v todo results () : unit =
         (M.unlock mutex_map; WM.push_worker wm1 kevin)
     | None     -> (* Failure, accum. # failure *) ()
 
+    with _ -> ()
+
 
 let reducerjob (wm2 : WM.reducer WM.worker_manager) k vlist todo results () : unit =
-  (* pop a worker *)
+  (* pop a worker *) try
   let kevin  = WM.pop_worker wm2 in
   let result :'a list option = WM.reduce kevin k vlist in
   match result  with
@@ -52,6 +55,7 @@ let reducerjob (wm2 : WM.reducer WM.worker_manager) k vlist todo results () : un
     else (M.unlock mutex_red; WM.push_worker wm2 kevin)
   | None -> ()
   
+  with _ -> ()
 
 
 (**************************** Main Functions ****************************)
