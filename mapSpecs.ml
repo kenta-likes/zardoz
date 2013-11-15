@@ -103,7 +103,7 @@ let equal_spec table1 table2 b =
   b = eqset (bindings table1) (bindings table2)
 
 (* Dependent type for equal: 
- * val equal : (equal_spec : ('a -> 'a) where )
+ * val equal : (cp : ('a -> 'a -> bool))
  *        -> (table1 : ('a,'b) t)
  *        -> (table2 : ('a,'b) t)
  *        -> (b : bool where equal_spec table1 table2 b)

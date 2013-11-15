@@ -71,8 +71,10 @@ let map (kv_pairs: (string * string) list) map_filename : (string * string) list
     begin H.iter f todo;
     (*6. Sleep for 0.1 seconds *) zzz 0.1;
     (*7. Check for undone jobs *)
+    Mutex.lock mutex_map;
     if (H.length todo) = 0 then 
-      (WM.clean_up_workers wm1; T.destroy tpool; !results) else helper ()
+      (WM.clean_up_workers wm1; T.destroy tpool; Mutex.unlock mutex_map; !results)
+      else (Mutex.unlock mutex_map; helper ())
     end 
   in
   helper ()
@@ -112,9 +114,10 @@ let reduce kvs_pairs reduce_filename : (string * string list) list =
     begin H.iter f todo;
     (*6. Sleep for 0.1 seconds *) zzz 0.1;
     (*7. Check for unfinished jobs *)
+    Mutex.lock mutex_red;
     if (H.length todo) = 0 
-    then (WM.clean_up_workers wm2; T.destroy tpool; !results) 
-    else helper ()
+    then (WM.clean_up_workers wm2; T.destroy tpool; Mutex.unlock mutex_red; !results) 
+    else (Mutex.unlock mutex_red; helper ())
     end in
   helper ()
 
