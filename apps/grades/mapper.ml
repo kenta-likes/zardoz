@@ -1,6 +1,6 @@
 open Util;;
 let (key, value) = Program.get_input() in
-let lst = (List.map split_spaces (split_to_class_lst value)) in 
+let lst = (List.rev_map split_spaces (split_to_class_lst value)) in 
 let extract acc elm = 
   match elm with
   | k::score::[] -> (k, score)::acc

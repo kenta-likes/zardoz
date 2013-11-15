@@ -34,7 +34,7 @@ let mapperjob (wm1: (WM.mapper WM.worker_manager)) k v todo results () : unit =
         M.unlock mutex_map; WM.push_worker wm1 kevin
       end
       else (* someone else has alreay done this job. *)
-        M.unlock mutex_map
+        (M.unlock mutex_map; WM.push_worker wm1 kevin)
     | None     -> (* Failure, accum. # failure *) ()
 
 
@@ -49,13 +49,16 @@ let reducerjob (wm2 : WM.reducer WM.worker_manager) k vlist todo results () : un
         (H.remove todo k); (results := ((k,res) :: !results)); 
         M.unlock mutex_red; WM.push_worker wm2 kevin
       end
-    else M.unlock mutex_red 
+    else (M.unlock mutex_red; WM.push_worker wm2 kevin)
   | None -> ()
   
 
-let map (kv_pairs: (string * string) list) (map_filename:string) : (string * string) list = 
+
+(**************************** Main Functions ****************************)
+
+let map (kv_pairs: (string * string) list) map_filename : (string * string) list = 
   (*1. create thread pool *)
-  let tpool = T.create 30 in
+  let tpool = T.create 50 in
   (*2. create a list that stores the result. thread-safe *)
   let results = ref [] in 
   (*3. create a hashtbl that stores unfinished tasks. thread-safe *)
@@ -70,11 +73,13 @@ let map (kv_pairs: (string * string) list) (map_filename:string) : (string * str
     (*7. Check for undone jobs *)
     if (H.length todo) = 0 then 
       (WM.clean_up_workers wm1; T.destroy tpool; !results) else helper ()
-    end in
+    end 
+  in
   helper ()
 
 
 (* Combine values with the same keys. This function won't preserve order. *)
+
 let combine (kv_pairs: (string * string) list) : (string * string list) list = 
   let rec helper1 acc1 lst1 =
     let helper2 k ini_acc lst2 : string list * (string * string) list = 
@@ -89,12 +94,12 @@ let combine (kv_pairs: (string * string) list) : (string * string list) list =
       helper1 ((k, values)::acc1) carryover
     | [] -> acc1
   in
-  helper1 [] kv_pairs
+  helper1 [] kv_pairs 
 
 
-let reduce (kvs_pairs : (string * string list) list) (reduce_filename : string) : (string * string list) list =
+let reduce kvs_pairs reduce_filename : (string * string list) list =
   (*1. create thread pool *)
-  let tpool = T.create 30 in
+  let tpool = T.create 50 in
   (*2. create a list that stores the result. thread-safe *)
   let results : (string * string list) list ref = ref [] in 
   (*3. create a hashtbl that stores unfinished tasks. thread-safe *)
@@ -106,7 +111,7 @@ let reduce (kvs_pairs : (string * string list) list) (reduce_filename : string) 
     let f k v = T.add_work (reducerjob wm2 k v todo results) tpool in 
     begin H.iter f todo;
     (*6. Sleep for 0.1 seconds *) zzz 0.1;
-    (*7. Check for undone jobs *)
+    (*7. Check for unfinished jobs *)
     if (H.length todo) = 0 
     then (WM.clean_up_workers wm2; T.destroy tpool; !results) 
     else helper ()
