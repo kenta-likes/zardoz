@@ -79,8 +79,8 @@ let add_spec table k v result =
 (* Dependent type for add: 
  *
  * val add : (table : ('a,'b) t)
- *        -> (k:'a)
- *        -> (v:'b)
+ *        -> (k : 'a)
+ *        -> (v : 'b)
  *        -> (result : ('a,'b) t where add_spec table k v result)
  *)
 
@@ -103,7 +103,7 @@ let equal_spec table1 table2 b =
   b = eqset (bindings table1) (bindings table2)
 
 (* Dependent type for equal: 
- * val equal : (cp : ('a -> 'a -> bool))
+ * val equal : (cmp : ('b -> 'b -> bool))
  *        -> (table1 : ('a,'b) t)
  *        -> (table2 : ('a,'b) t)
  *        -> (b : bool where equal_spec table1 table2 b)
